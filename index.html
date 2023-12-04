@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD em HTML</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1>CRUD em HTML</h1>
+
+
+  <form id="createForm">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" required>
+    <label for="cpf">CPF:</label>
+    <input type="text" id="cpf" required pattern="\d{11}" placeholder="Digite apenas números">
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
+    <button type="button" onclick="criarRegistro()">Criar</button>
+  </form>
+
+
+  <h2>Registros</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>CPF</th>
+        <th>Email</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="registrosBody">
+  
+    </tbody>
+  </table>
+
+  <script>
+   
+    let registros = [];
+
+    function criarRegistro() {
+
+      const nome = document.getElementById('nome').value;
+      const cpf = document.getElementById('cpf').value;
+      const email = document.getElementById('email').value;
+
+      if (cpfDuplicado(cpf)) {
+        alert('CPF duplicado. Por favor, insira um CPF único.');
+        return;
+      }
+
+
+      if (!validarCPF(cpf)) {
+        alert('CPF inválido. Por favor, insira um CPF válido.');
+        return;
+      }
+
+
+      registros.push({ nome, cpf, email });
+
+
+      document.getElementById('createForm').reset();
+
+  
+      exibirRegistros();
+    }
+
+    function cpfDuplicado(cpf) {
+      return registros.some(registro => registro.cpf === cpf);
+    }
+
+    function validarCPF(cpf) {
+    
+      const cpfLimpo = cpf.replace(/\D/g, '');
+
+      if (cpfLimpo.length !== 11 || !/^\d{11}$/.test(cpfLimpo)) {
+        return false;
+      }
+
+      const calcularDigitoVerificador = (cpfParcial) => {
+        const soma = cpfParcial.split('').reduce((acc, digit, i) => {
+          const peso = cpfParcial.length + 1 - i;
+          return acc + parseInt(digit) * peso;
+        }, 0);
+
+        const resto = soma % 11;
+        return resto < 2 ? 0 : 11 - resto;
+      };
+
+      const digitoVerificador1 = calcularDigitoVerificador(cpfLimpo.substring(0, 9));
+      const digitoVerificador2 = calcularDigitoVerificador(cpfLimpo.substring(0, 10));
+
+      return (
+        digitoVerificador1 === parseInt(cpfLimpo.charAt(9)) &&
+        digitoVerificador2 === parseInt(cpfLimpo.charAt(10))
+      );
+    }
+
+    function exibirRegistros() {
+      const tabelaBody = document.getElementById('registrosBody');
+
+    
+      tabelaBody.innerHTML = '';
+
+  
+      registros.forEach((registro, index) => {
+        const row = tabelaBody.insertRow();
+        const cell1 = row.insertCell(0);
+        const cell2 = row.insertCell(1);
+        const cell3 = row.insertCell(2);
+        const cell4 = row.insertCell(3);
+
+        cell1.textContent = registro.nome;
+        cell2.textContent = registro.cpf;
+        cell3.textContent = registro.email;
+        cell4.innerHTML = `<button onclick="editarRegistro(${index})">Editar</button> | <button onclick="excluirRegistro(${index})">Excluir</button>`;
+      });
+    }
+
+    function editarRegistro(index) {
+      
+      const registro = registros[index];
+      document.getElementById('nome').value = registro.nome;
+      document.getElementById('cpf').value = registro.cpf;
+      document.getElementById('email').value = registro.email;
+
+     
+      registros.splice(index, 1);
+
+    
+      exibirRegistros();
+    }
+
+    function excluirRegistro(index) {
+   
+      registros.splice(index, 1);
+
+      
+      exibirRegistros();
+    }
+  </script>
+
+</body>
+</html>
